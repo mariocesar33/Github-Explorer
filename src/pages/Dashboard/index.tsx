@@ -1,16 +1,35 @@
-import React, { useState} from 'react';
+import React, { useState, FormEvent} from 'react';
 import { FiChevronRight } from 'react-icons/fi';
 
 import api from '../../services/api';
 import logoImg from '../../assets/logo.svg';
 import { Title, Form, Repositories } from './styles'
 
+interface Repositoy {
+  full_name: string;
+  description: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  }
+}
+
 const Dashboard: React.FC = () => {
   const [newRepo, setNewRepo] = useState('');
-  const [repositories, setRepositories] = useState([]);
+  const [inputError, setInputError] = useState('');
+  const [repositories, setRepositories] = useState<Repositoy[]>([]);
 
-  function handleAddRepository() {
-
+  async function handleAddRepository(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    
+    // Consumir Api do Github
+    const response =  await api.get<Repositoy>(`repos/${newRepo}`);
+    
+    // Adicão de um novo repositório
+    const repository = response.data;
+    setRepositories([...repositories, repository]);
+    setNewRepo(''); // para limpar o input
+    // Salvar novo repositório no estado
   }
 
   return (
@@ -18,7 +37,7 @@ const Dashboard: React.FC = () => {
       <img src={logoImg} alt="Github Explorer" />
       <Title>Explore repositórios no Github.</Title>
 
-      <Form>
+      <Form onSubmit={handleAddRepository}>
         <input
           value={newRepo} 
           onChange={(e) => setNewRepo(e.target.value)}
@@ -28,19 +47,21 @@ const Dashboard: React.FC = () => {
       </Form>
 
       <Repositories>
-        <a href="test">
-          <img 
-            src="https://avatars3.githubusercontent.com/u/24758286?s=460&u=d3b6fcc00916078ae870fd88b802b006b7c3ac72&v=4" 
-            alt="Mário César"
-          />
-          <div>
-            <strong>mariocesar33/the-box</strong>
-            <p>design responsivo e assimétrico HTML e CSS</p>
-          </div>
-
-          <FiChevronRight size={20}/>
-        </a>
- 
+        {repositories.map(repository => (
+            <a key={repository.full_name} href="test">
+              <img
+                src={repository.owner.avatar_url}
+                alt={repository.owner.login}
+              />
+              <div>
+                <strong>{repository.full_name}</strong>
+                <p>{repository.description}</p>
+              </div>
+          
+              <FiChevronRight size={20}/>
+            </a>
+          
+          ))}
       </Repositories>
     </>
   );
