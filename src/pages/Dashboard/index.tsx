@@ -91,8 +91,7 @@ const Dashboard: React.FC = () => {
               </div>
           
               <FiChevronRight size={20}/>
-            </Link>
-          
+            </Link>         
           ))}
       </Repositories>
     </>
